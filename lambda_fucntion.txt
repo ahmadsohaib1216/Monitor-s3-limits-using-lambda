@@ -1,0 +1,29 @@
+import json
+import boto3
+
+client = boto3.client('sns')
+s3 = boto3.resource('s3')
+
+def lambda_handler(event, context):
+ bucketlist = []
+ count = 0
+ for bucket in s3.buckets.all():
+  count += 1
+ bucketlist.append(bucket.name)
+
+ def sns_invoke():
+  response = client.publish(
+    TargetArn = 'arn:aws:sns:eu-west-1:account_no:s3limits',
+    Message = 'Your s3 bucket has exceeded the limits, please request AWS to increase it!',
+  )
+ if count > 100:     
+  sns_invoke()
+  msg='S3 buckets limit reached SNS invoked'
+ else :
+  msg='S3 is still under limit'
+
+ return {
+  "statuscode": 200,
+  "count": count,
+  "message": msg
+ }
